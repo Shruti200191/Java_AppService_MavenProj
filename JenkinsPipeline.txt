@@ -8,7 +8,7 @@ pipeline {
    stages {
        stage('Cloning our Git') {
            steps {
-               git 'https://github.com/SatyadipPaul/java-docker-build-tutorial.git'
+               git 'https://github.com/Shruti200191/java-docker-build-tutorial.git'
            }
        }
        stage('Building our image') {
