@@ -11,7 +11,7 @@ public class Status {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public String statusInformation() {
-//     return "{\"status\": \"idle\"}\n";
-    return "App Server is up and Running";
+    return "{\"status\": \"idle\"}\n";
+//     return "App Server is up and Running";
   }
 }
