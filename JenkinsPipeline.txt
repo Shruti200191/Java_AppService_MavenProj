@@ -18,19 +18,24 @@ pipeline {
                }
            }
        }
+      
+       stage('Running Build Image') {
+           steps {
+               sh "docker run -d -p 8123:8123 $registry:$BUILD_NUMBER"
+            //   sh "curl -k http://0.0.0.0:8123/status"
+            //   sh "curl -I --write-out %{http_code} --silent --output /dev/null http://localhost:8123/status"
+               sh "echo \$(curl -I --write-out %{http_code} --silent --output /dev/null http://localhost:8123/status)"
+           }
+       }
+       
        stage('Deploy our image') {
-           steps {
-               script {
-                   docker.withRegistry( '', registryCredential ) {
-                       dockerImage.push()
-                   }
-               }
-           }
-       }
-       stage('Cleaning up') {
-           steps {
-               sh "docker rmi $registry:$BUILD_NUMBER"
-           }
-       }
+          steps {
+              script {
+                  docker.withRegistry( '', registryCredential ) {
+                      dockerImage.push()
+                  }
+              }
+          }
+      }
    }
 }
