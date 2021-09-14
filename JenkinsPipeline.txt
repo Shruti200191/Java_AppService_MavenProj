@@ -33,14 +33,14 @@ pipeline {
        
        stage('Cleaning Workspace Images'){
            steps{
-               sh "docker images|grep none | awk '{print \$3}'| xargs docker rmi -f"
-               sh "docker images|grep $registryCredential | awk '{print \$3}'| xargs docker rmi -f"
+               sh "docker ps | grep $registry | awk '{print \$1}' | xargs --no-run-if-empty docker stop" 
+               sh "docker images|grep none | awk '{print \$3}'| xargs --no-run-if-empty docker rmi -f"
+               sh "docker images|grep $registryCredential | awk '{print \$3}'| xargs --no-run-if-empty docker rmi -f"
            }
        }
       
        stage('Running Container') {
            steps {
-//            sh "docker ps | grep $registry | awk '{print \$1}' | xargs docker stop" 
               sh "docker run -d -p 8123:8123 $registry:$BUILD_NUMBER"
               sh "sleep 5"
               sh "curl -Is http://0.0.0.0:8123/status"
