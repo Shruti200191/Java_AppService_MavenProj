@@ -20,10 +20,27 @@ pipeline {
                }
            }
        }
+       
+       stage('Pushing App image') {
+          steps {
+              script {
+                  docker.withRegistry( '', registryCredential ) {
+                      dockerImage.push()
+                  }
+              }
+          }
+       }
+       
+       stage('Cleaning Workspace Images'){
+           steps{
+               sh "docker images|grep none | awk '{print \$3}'| xargs docker rmi -f"
+               sh "docker images|grep $registryCredential | awk '{print \$3}'| xargs docker rmi -f"
+           }
+       }
       
-       stage('Running Container from Image') {
+       stage('Running Container') {
            steps {
-              sh "docker ps | grep $registry | awk '{print \$1}' | xargs docker stop" 
+//            sh "docker ps | grep $registry | awk '{print \$1}' | xargs docker stop" 
               sh "docker run -d -p 8123:8123 $registry:$BUILD_NUMBER"
               sh "sleep 5"
               sh "curl -Is http://0.0.0.0:8123/status"
@@ -42,14 +59,6 @@ pipeline {
           }  
        }
        
-      stage('Deploy our image') {
-          steps {
-              script {
-                  docker.withRegistry( '', registryCredential ) {
-                      dockerImage.push()
-                  }
-              }
-          }
-      }
+      
    }
 }
