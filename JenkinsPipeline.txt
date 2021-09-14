@@ -3,6 +3,8 @@ pipeline {
        registry = "shruti200191/cicdpipeline"
        registryCredential = 'shruti200191'
        dockerImage = ''
+       checkUrl = 'http://0.0.0.0:8123/status'
+       checkCMD = "curl -Is ${checkUrl} | head -n 1"
    }
    agent any
    stages {
@@ -19,16 +21,28 @@ pipeline {
            }
        }
       
-       stage('Running Build Image') {
+       stage('Running Container from Image') {
            steps {
-               sh "docker run -d -p 8123:8123 $registry:$BUILD_NUMBER"
-            //   sh "curl -k http://0.0.0.0:8123/status"
-            //   sh "curl -I --write-out %{http_code} --silent --output /dev/null http://localhost:8123/status"
-               sh "echo \$(curl -I --write-out %{http_code} --silent --output /dev/null http://localhost:8123/status)"
-           }
+              sh "docker ps | grep $registry | awk '{print \$1}' | xargs docker stop" 
+              sh "docker run -d -p 8123:8123 $registry:$BUILD_NUMBER"
+              sh "sleep 5"
+              sh "curl -Is http://0.0.0.0:8123/status"
+              script{
+                    def response = sh(script: checkCMD, returnStdout: true)
+                    println("*"+response.trim()+"*")
+                    if (response.trim() == 'HTTP/1.1 200 OK') {
+                        currentBuild.result = "SUCCESS"
+                    }
+                    else {
+                        currentBuild.result = "FAILURE"
+                    }
+                }
+
+            
+          }  
        }
        
-       stage('Deploy our image') {
+      stage('Deploy our image') {
           steps {
               script {
                   docker.withRegistry( '', registryCredential ) {
